@@ -20,7 +20,7 @@ public class DSDM {
     private Problem problem;
     private String level;
 
-    public DSDM(Problem problem, int p, String level) throws Exception {
+    /*public DSDM(Problem problem, int p, String level) throws Exception {
         this.problem = problem;
         this.level = level;
         ArrayList<ArrayList> ranges = new ArrayList();
@@ -28,9 +28,11 @@ public class DSDM {
         Variable mini, maxi;
         double spacing;
         Solution solution;
+        System.out.println("level " + level);
         if (level.equals("upper")) {
             solution = new Solution(problem, "upper");
             referencePoints = new SolutionSet();
+            System.out.println("solution.getProblem().getUpperLevelSolutionType()" + solution.getProblem().getUpperLevelSolutionType());
             if (ArrayIntSolutionType.class.isInstance(solution.getProblem().getUpperLevelSolutionType())) {
                 int decisionVariablesNum = solution.getDecisionVariables().length * solution.getDecisionVariable(0).getLength();
                 int c = 0, k = 0;
@@ -91,6 +93,81 @@ public class DSDM {
                     ranges.add(rangei);
                 }
                 referencePoints = combinaison(ranges, maxSizeRange);
+            }
+        } else {
+            solution = new Solution(problem, "lower");
+            for (int i = 0; i < solution.getDecisionVariables().length; i++) {
+                spacing = solution.getDecisionVariable(i).calculateSpacing(p);
+                ArrayList<Variable> rangei = new ArrayList();
+                mini = solution.getDecisionVariable(i);
+                mini.setValue(solution.getDecisionVariable(i).getLowerBound());
+                rangei.add(mini);
+                while (rangei.get(rangei.size() - 1).isLowerUpperBound()) {
+                    Variable r = rangei.get(rangei.size() - 1).closet(spacing);
+                    if (!isInTheRanges(r, rangei)) {
+                        rangei.add(r);
+                    }
+                }
+                if (maxSizeRange < rangei.size()) {
+                    maxSizeRange = rangei.size();
+                }
+                ranges.add(rangei);
+            }
+            referencePoints = combinaison(ranges, maxSizeRange);
+        }
+        System.out.println("referencePoints " + referencePoints.size());
+    }*/
+    
+    public DSDM(Problem problem, int p, String level) throws Exception {
+        this.problem = problem;
+        this.level = level;
+        ArrayList<ArrayList> ranges = new ArrayList();
+        int maxSizeRange = 0;
+        Variable mini, maxi;
+        double spacing;
+        Solution solution;
+        if (level.equals("upper")) {
+            solution = new Solution(problem, "upper");
+            int decisionVariablesNum = solution.getDecisionVariables().length * solution.getDecisionVariable(0).getLength();
+            int c = 0, k = 0;
+            for (int i = 0; i < decisionVariablesNum; i++) {
+                if (k >= solution.getDecisionVariable(c).getLength()) {
+                    k = 0;
+                    c++;
+                }
+                spacing = solution.getDecisionVariable(c).calculateSpacing(k, p);
+                ArrayList<Variable> rangei = new ArrayList();
+                mini = solution.getDecisionVariable(c);
+                mini.setValue(solution.getDecisionVariable(c).getLowerBound(k), k);
+                mini.getVariable(k);
+                rangei.add(mini.getVariable(k));
+                while (rangei.get(rangei.size() - 1).isLowerUpperBound()) {
+                    Variable r = rangei.get(rangei.size() - 1).closet(spacing);
+                    if (!isInTheRanges(r, rangei)) {
+                        rangei.add(r);
+                    }
+                }
+                if (maxSizeRange < rangei.size()) {
+                    maxSizeRange = rangei.size();
+                }
+                ranges.add(rangei);
+                k++;
+            }
+            SolutionSet refPoints = combinaison(ranges, maxSizeRange);
+            referencePoints = new SolutionSet();
+            for (int i = 0; i < refPoints.size(); i++) {
+                Solution s = new Solution(problem, "upper");
+                c = 0;
+                k = 0;
+                for (int j = 0; j < refPoints.get(i).getDecisionVariables().length; j++) {
+                    if (k >= s.getDecisionVariable(c).getLength()) {
+                        k = 0;
+                        c++;
+                    }
+                    s.getDecisionVariable(c).setValue(refPoints.get(i).getDecisionVariable(j).getValue(), k);
+                    k++;
+                }
+                referencePoints.add(s);
             }
         } else {
             solution = new Solution(problem, "lower");

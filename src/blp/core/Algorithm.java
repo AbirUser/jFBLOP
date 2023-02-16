@@ -14,7 +14,7 @@ public abstract class Algorithm implements Serializable {
     private HashMap<String, Object> inputParameters = null;
     private HashMap<String, Object> outPutParameters = null;
 
-    public Algorithm(Problem getget) {
+    public Algorithm(Problem problem) {
         this.problem = problem;
     }
 
